@@ -1,57 +1,21 @@
-/*
-import { wordlist } from "./wordlist2.js";
-
-// The word must EXCLUDE these chars
-const excludeChars = "qwrupslcbnm";
-// The word must INCLUDE these chars
-const containChars = "etoa";
-
-const excludeFilter = wordlist.filter((word) => {
-  let wordContainsForbiddenChar = false;
-  [...excludeChars].forEach((xLetter) => {
-    if (word.includes(xLetter)) {
-      wordContainsForbiddenChar = true;
-    }
-  });
-
-  if (!wordContainsForbiddenChar) {
-    return true;
-  }
-
-  return false;
-});
-
-const includeFilter = excludeFilter.filter((word) => {
-
-  // Check if word contains ALL characters with .every()
-  const wordContainsChars = [...containChars].every((xLetter) => {
-    return word.includes(xLetter);
-  });
-
-  return wordContainsChars;
-});
-
-// Log the word options
-console.log(includeFilter);
-*/
-
-
-// ChatGPT documented and improved code
-
 import { wordlist } from "./wordlist2.js";
 
 /**
  * Filters words based on exclusion and inclusion criteria.
- * 
+ *
  * Excludes words containing any characters from `excludeChars`.
  * Includes words containing all characters from `containChars`.
  */
 
 // Characters to exclude from the word
-const excludeChars = "bastomph";
+// Dont add letter that you might suspect to be double
+const excludeChars = "";
 
 // Characters the word must include
-const containChars = "endel";
+const containChars = "";
+
+// Place characters in this order
+const charPlacement = ["*", "*", "*", "*", "*", "*"];
 
 /**
  * Filters out words that contain any of the characters in `excludeChars`.
@@ -60,26 +24,55 @@ const containChars = "endel";
  * @returns {string[]} - The filtered list of words.
  */
 const filterExcludedChars = (words, excludeChars) => {
-  return words.filter(word =>
-    ![...excludeChars].some(char => word.includes(char))
-  );
+  return words.filter((word) => ![...excludeChars].some((char) => word.includes(char)));
 };
 
 /**
- * Filters in words that contain all of the characters in `containChars`.
- * @param {string[]} words - The list of words to filter.
- * @param {string} containChars - A string of characters that must be included.
- * @returns {string[]} - The filtered list of words.
+ * Filters words based on:
+ * 1. Characters that must appear anywhere in the word
+ * 2. Placement rules per character index
+ *
+ * Placement rule formats:
+ *  - "*"       → wildcard
+ *  - "x"       → must be exactly 'x'
+ *  - "!abc"    → must NOT be a, b, or c
+ *
+ * @param {string[]} words
+ * @param {string} containChars
+ * @param {string[]} placementRules
+ * @returns {string[]}
  */
-const filterIncludedChars = (words, containChars) => {
-  return words.filter(word => 
-    [...containChars].every(char => word.includes(char))
-  );
+const filterIncludedCharsV3 = (words, containChars, placementRules) => {
+  return words.filter(word => {
+    // Check required chars exist anywhere
+    const hasAllChars = [...containChars].every(char => word.includes(char));
+    if (!hasAllChars) return false;
+
+    // Check placement rules
+    for (let i = 0; i < placementRules.length; i++) {
+      const rule = placementRules[i];
+      const letter = word[i];
+
+      if (!rule || rule === "*") continue; // wildcard
+
+      // Must NOT be these characters
+      if (rule.startsWith("!")) {
+        const forbidden = rule.slice(1);
+        if (forbidden.includes(letter)) return false;
+        continue;
+      }
+
+      // Must be exactly this character
+      if (letter !== rule) return false;
+    }
+
+    return true;
+  });
 };
 
-// Apply the filters
 const excludeFilter = filterExcludedChars(wordlist, excludeChars);
-const includeFilter = filterIncludedChars(excludeFilter, containChars);
+const includeFilter = filterIncludedCharsV3(excludeFilter, containChars, charPlacement);
 
-// Log the word options
 console.log(includeFilter);
+
+console.log("Random word:", includeFilter[Math.floor(Math.random() * includeFilter.length)]);
