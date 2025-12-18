@@ -24,7 +24,7 @@ const charPlacement = ["*", "*", "*", "*", "*", "*"];
  * @returns {string[]} - The filtered list of words.
  */
 const filterExcludedChars = (words, excludeChars) => {
-  return words.filter((word) => ![...excludeChars].some((char) => word.includes(char)));
+  return words.filter((word) => ![...excludeChars].some((char) => word.toLowerCase().includes(char)));
 };
 
 /**
@@ -45,13 +45,13 @@ const filterExcludedChars = (words, excludeChars) => {
 const filterIncludedCharsV3 = (words, containChars, placementRules) => {
   return words.filter(word => {
     // Check required chars exist anywhere
-    const hasAllChars = [...containChars].every(char => word.includes(char));
+    const hasAllChars = [...containChars].every(char => word.toLowerCase().includes(char));
     if (!hasAllChars) return false;
 
     // Check placement rules
     for (let i = 0; i < placementRules.length; i++) {
       const rule = placementRules[i];
-      const letter = word[i];
+      const letter = word.toLowerCase()[i];
 
       if (!rule || rule === "*") continue; // wildcard
 
